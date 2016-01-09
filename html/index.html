@@ -1,0 +1,238 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>simple fileshare</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+</head>
+
+<body>
+
+
+    <form>
+        <div id="paste_or_file_radio" style="border:1px solid #000;width=auto;display: inline-block;">
+            <input type="radio" id="pasteradio" name="radio">
+            <label for="pasteradio">paste text</label>
+            <input type="radio" id="fileradio" name="radio">
+            <label for="fileradio">upload file</label>
+        </div>
+    </form>
+    <br/>
+    <script>
+        $(function() {
+            //$( "#paste_or_file_radio" ).buttonset();
+        });
+        $("#pasteradio").on("click", function(ev) {
+            $("#uploadfile").hide();
+            $("#pastetext").show();
+        });
+        $("#fileradio").on("click", function(ev) {
+            $("#pastetext").hide();
+            $("#uploadfile").show();
+        });
+    </script>
+
+    <form>
+        <div id="strict_filename_radios" style="border:1px solid #000;width=auto;display: inline-block;">
+            <input type="radio" id="strict_filename_on_radio" name="radio">
+            <label for="strict_filename_on_radio">strict_filename ON</label>
+            <input type="radio" id="strict_filename_off_radio" name="radio">
+            <label for="strict_filename_off_radio">strict_filename OFF</label>
+            <input type="radio" id="strict_filename_unspecified_radio" checked="checked" name="radio">
+            <label for="strict_filename_unspecified_radio">strict_filename unspecified.</label>
+            <br/><span>by default, if a filename is longer than 255 characters, it will be truncated to 255 characters. if the filename is invalid, it will be "transliterated" to a valid filename. if you want an error instead of a convertion, use strict_filename ON.
+	valid characters: &nbsp;!#$%&amp;0&#039;()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~ 
+<!-- Warning: Do not copy this list from the html source code! that list is HTML encoded. here is the unencoded version: 
+ !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~ 
+--></span>
+        </div>
+    </form>
+    <br/>
+    <script>
+        $("#strict_filename_unspecified_radio").on("click", function(ev) {
+            $("input[name=\"strict_filename\"]").each(function() {
+                this.setAttribute("disabled", this.disabled = "disabled");
+            });
+        });
+
+        $("#strict_filename_unspecified_radio").click();
+        $("#strict_filename_on_radio").on("click", function(ev) {
+            $("input[name=\"strict_filename\"]").each(function() {
+                this.value = "1";
+                if (this.hasAttribute("disabled")) {
+                    this.removeAttribute("disabled");
+                }
+            });
+        });
+        $("#strict_filename_off_radio").on("click", function(ev) {
+            $("input[name=\"strict_filename\"]").each(function() {
+                this.value = "0";
+                if (this.hasAttribute("disabled")) {
+                    this.removeAttribute("disabled");
+                }
+            });
+        });
+    </script>
+    <div id="expirediv" style="border:1px solid #000;width=auto;display: inline-block;">
+        <form>
+            <span>Number of seconds before the file "expires" and can no longer be downloaded: </span>
+            <br/>
+            <input type="number" id="expireinput" min="-1" value="0" />
+            <br/><span>0 is an alias for default. default is 31536000 seconds, which is 1 year. -1 means no expiration date. </span>
+        </form>
+    </div>
+    <br/>
+    <script>
+        $('#expireinput').on('input change', function(ev) {
+            var target = ev.target;
+            //$(this).prop('type', 'text');//hack for retarded browsers lying about value...
+            var value = target.value;
+            //$(this).prop('type', 'number');
+            //console.log("CALLED. value: "+value);
+            if (value == "0" || value == "") {
+                //Some browsers say 0 in javascript, but may display nothing. this hack force borwsers to display 0 if they think it contain 0.
+                target.setAttribute("value", target.value = value = "0");
+            }
+            if (!/(^\-1?$)|(^[0-9]*$)/.test(value)) {
+                //console.log("FAILED rex1");
+                target.setAttribute("value", target.value = value = "0");
+            } else { //console.log("string "+value+"PASSED REX1");
+            }
+            if (/^0[0-9]+$/.test(value)) {
+                //console.log(value+" FAILED rex2");
+                var newval = value.replace(/^0+/, "");
+                if (newval === "") {
+                    newval = "0";
+                }
+                target.setAttribute("value", target.value = value = newval);
+            } else { //console.log("string "+value+" PASSED REX2");
+            }
+            $("input[name=\"expire\"]").each(function() {
+                this.setAttribute("value", this.value = value);
+            });
+        });
+    </script>
+    <br/>
+    <div id="hiddendiv" style="border:1px solid #000;width=auto;display: inline-block;">
+        hidden:
+        <select id="hiddenselect">
+            <option value="0" selected="selected">0</option>
+            <option value="1">1</option>
+        </select>
+        <br/>
+        <span>if a file is hidden, it will get a secret url nobody else can guess</span>
+    </div>
+    <script>
+        $("#hiddenselect").on('input change select selected', function() {
+            //console.log("hiddenselect handler called!");
+            var value = this.item(this.selectedIndex).value;
+            $("input[name=\"hidden\"]").each(function() {
+                this.setAttribute("value", this.value = value);
+            });
+        });
+    </script>
+    <br/>
+    <br/>
+    <div id="passworddiv" style="border:1px solid #000;width=auto;display: inline-block;" >
+        <form>
+            <span>password protect?: </span>
+            <input id="passwordinputenabledcheckbox" type="checkbox" />
+            <input id="passwordinput" type="password" value="" disabled="disabled" />
+        </form>
+    </div><br/>
+    <script>
+
+        (function() {
+            var handler = function(ev) {
+                if ($(this).is(':checked')) {
+				//console.log("checked. "+this.checked);
+                    if ($('#passwordinput')[0].hasAttribute("disabled")) {
+                        $('#passwordinput')[0].removeAttribute("disabled");
+						}
+                        $("input[name=\"password\"]").each(function() {
+                            if (this.hasAttribute("disabled")) {
+                                this.removeAttribute("disabled");
+                            }
+                        });
+                    } else {
+				//console.log("not checked. "+this.checked);
+					$('#passwordinput')[0].setAttribute("disabled", "disabled");
+                        $("input[name=\"password\"]").each(function() {
+                            this.setAttribute("disabled", "disabled");
+                        });
+                    }
+               }
+			   
+            $('#passwordinputenabledcheckbox').on('input click change', handler);
+
+            $(document).ready(function(){/*there is a reason i made this an anon function! though its not obvious why, if i just pass the .change function, jQuery will error out. not sure why*/$('#passwordinputenabledcheckbox').change()});
+        })();
+		$('#passwordinput').on('input change',function(){
+			var value=this.value;
+			$("input[name=\"password\"]").each(function(){
+				this.setAttribute("value",this.value=value);
+			});
+		});
+    </script>
+    <form id="pastetext" enctype="multipart/form-data" action="upload_api_v1.php" method="POST">
+        <!-- <textarea id="resizable" rows="5" cols="20"></textarea><br/> -->
+        filename:
+        <input type="text" name="upload_data_name" value="untitled.txt" />
+        <br/> content type:
+        <select name="upload_data_content_type">
+            <!-- to hackers: upload_api_v1.php will only accept these 3 values -->
+            <option selected="selected" value="text/plain;charset=utf8">text/plain;charset=utf8</option>
+            <option value="application/octet-stream">application/octet-stream</option>
+            <option value="autodetect">autodetect</option>
+        </select>
+        <br/>
+        <br/>
+        <textarea id="resizable" name="upload_data" cols="50" style="width=100%;"></textarea>
+        <br/>
+        <input type="submit" name="submit" value="Submit" />
+        <br/>
+        <input type="hidden" name="strict_filename" disabled="disabled" value="" />
+        <input type="hidden" name="expire" value="0" />
+        <input type="hidden" name="hidden" value="0" />
+        <input type="hidden" name="password" value="" disabled="disabled" />
+    </form>
+    <script>
+        $(function() {
+            $("#resizable").resizable({});
+        });
+    </script>
+
+    <form id="uploadfile" enctype="multipart/form-data" action="upload_api_v1.php" method="POST">
+        content type:
+        <select name="upload_data_content_type">
+            <!-- to hackers: upload_api_v1.php will only accept these 3 values -->
+            <option value="text/plain;charset=utf8">text/plain;charset=utf8</option>
+            <option value="application/octet-stream">application/octet-stream</option>
+            <option value="autodetect" selected="selected">autodetect</option>
+        </select>
+        <br/>
+
+        <!-- MAX_FILE_SIZE must precede the file input field -->
+        <!-- <input type="hidden" name="MAX_FILE_SIZE" value="30000" /> -->
+        <!-- Name of input element determines name in $_FILES array -->
+        Send this file:
+        <input name="upload_data" type="file" />
+        <br/>
+        <input type="submit" value="Send File" />
+        <br/>
+        <input type="hidden" name="strict_filename" disabled="disabled" value="" />
+        <input type="hidden" name="expire" value="0" />
+        <input type="hidden" name="hidden" value="0" />
+        <input type="hidden" name="password" value="" disabled="disabled" />
+
+    </form>
+    <a href="apidocs.html">read API documentation here</a>
+    <script>
+        $("#pasteradio").click();
+    </script>
+</body>
+
+</html>

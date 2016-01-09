@@ -1,0 +1,51 @@
+-- DROP TABLE IF EXISTS `files`;
+		
+CREATE TABLE `public_files` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT NULL DEFAULT NULL,
+  `file_metadata_id` INT NULL DEFAULT NULL,
+  `file_content_type` VARCHAR(255) NULL DEFAULT NULL,
+  `data_name` VARCHAR(255) NULL DEFAULT NULL,
+  `password_hash` VARCHAR(255) NULL DEFAULT NULL,
+  `password_hash_type` INTEGER NULL DEFAULT NULL,
+  `expire` TIMESTAMP NULL DEFAULT NULL,
+  `upload_ip` INT NULL DEFAULT NULL,
+  `upload_date` INT NULL DEFAULT NULL
+);
+
+CREATE TABLE `files_metadata` (
+	`id` INTEGER PRIMARY KEY AUTOINCREMENT NULL DEFAULT NULL,
+	`local_filename` VARCHAR(255)  UNIQUE NULL DEFAULT NULL,
+	`compression` INT NULL DEFAULT NULL
+);
+
+CREATE TABLE `hidden_files` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT NULL DEFAULT NULL,
+  `hiddenid` VARCHAR(255) NULL DEFAULT NULL,
+  `file_metadata_id` INT NULL DEFAULT NULL,
+  `file_content_type` VARCHAR(255) NULL DEFAULT NULL,
+  `data_name` VARCHAR(255) NULL DEFAULT NULL,
+  `password_hash` VARCHAR(255) NULL DEFAULT NULL,
+  `password_hash_type` INTEGER NULL DEFAULT NULL,
+  `expire` TIMESTAMP NULL DEFAULT NULL,
+  `upload_ip` INT NULL DEFAULT NULL,
+  `upload_date` INT NULL DEFAULT NULL
+);
+
+CREATE TABLE `config` (
+ `id` INTEGER PRIMARY KEY AUTOINCREMENT NULL DEFAULT NULL,
+ `default_compression` INTEGER NULL DEFAULT NULL,
+ `filesfolder` VARCHAR(255) NULL DEFAULT NULL,
+ `download_api_v1_url` VARCHAR(255) NULL DEFAULT NULL
+);
+
+-- ---
+-- Table 'hash_types'
+-- 
+-- ---
+
+-- DROP TABLE IF EXISTS `hash_types`;
+		
+CREATE TABLE `hash_types` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT NULL DEFAULT NULL,
+  `hash_description` VARCHAR(255) NULL DEFAULT NULL
+);

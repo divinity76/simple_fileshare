@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>simple fileshare</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+</head>
+<body>
+to upload a file, send a POST request to upload_api_v1.php?action=upload&amp;response_type=json <br/>
+with options:<br/><br/>
+<div name="required" style="background-color:aliceblue;">
+Required paramaters: <br/><br/>
+
+<mark>upload_data</mark>: the data you want to upload<br/>
+
+
+</div><br/><br/>
+<div name="optional" style="background-color:antiquewhite;">
+Optional paramters:<br/><br/>
+
+<mark>upload_data_name</mark>: filename. defaults depends on content-type:<br/>
+ if content-type is text/plain;charset=utf8 , it will  be named "untitled.txt".<br/>
+ if content-type is "application/octet-stream", it will be named "untitled.bin".<br/>
+depending on strict_filename option (default off),  the filename may be altered/sanitized. (see documentation on strict_filename for more info.)<br/>
+A special case is if POST is sent with "Content-Type: multipart/form-data" and "Content-Disposition: form-data; name="upload_data"; filename="wtfnok.png"" , 
+and upload_data_name is empty/unspecified, then upload_data_name will be derived from the "filename", if available. 
+<br/><br/>
+
+<mark>strict_filename</mark>: 
+The only allowed characters in filename is as follows: <br/>
+&nbsp;!#$%&amp;0&#039;()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~ <br/>
+<!-- Warning: Do not copy this list from the html source code! that list is HTML encoded. here is the unencoded version: 
+ !#$%&'()+,-.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~ 
+-->
+and the max filename length is 255 characters. 
+by default, strict_filename=0 , <br/>
+and invalid filenames will be "transliterated" with iconv from utf8 to ascii,<br/>
+ then filtered for bad characters,<br/> 
+ and finally be truncated to 255 characters. with strict_filename=1 , 
+ you will get an error instead, if the filename is invalid. 
+ <br/><br/>
+
+<mark>upload_data_content_type</mark>: by default, "autodetect", it has 3 accepted options,<br/>
+autodetect: if any byte of the file is &lt; 0x20 or &gt; 0x7E, it will be "application/octet-stream", otherwise,
+it will be "text/plain;charset=utf8" - Note that this may change to detect clean utf8 text strings in the future, instead of the current ASCII detection.. maybe.<br/>
+text/plain;charset=utf8: recommended for text files. <br/>
+application/octet-stream: recommended for everyting else. <br/>
+currently, for security reasons, NO OTHER VALUE IS ACCEPTED.<br/><br/>
+
+<mark>expire</mark>: number of seconds until the data "expires" and can no longer be downloaded. -1 means forever. 0 is an alias default.  default: 31536000 (1 year).<br/><br/>
+
+<mark>hidden</mark>: default, 0. if 1, the file will get a download url which is both (pretty close to) impossible-to-guess and impossible-to-bruteforce.<br/>
+ meaning only those you give the URL to will be able to see the file.<br/><br/>
+ 
+<mark>password</mark>: if provided, your file can only be downloaded if the correct password is provided in the download request. (alternatively, in the download request, you can supply a string wich collides with str_replace(array('+','/','='),array('-','_','.'),base64_encode(hash('sha1',hash('sha256',password,true),true))) , good luck with that...) 
+
+
+<br/><br/>
+</div>
+<div id="responsediv">
+The response will be in JSON format, and will contain some or all of the following properties:<br/><br/>
+
+<mark>Warnings</mark>: if present, an array of human-readable warnings (for instance, your filename was invalid and has been sanitized to foo.bin,
+ or your filename was too long and has been cut to 255 characters )
+<br/><br/>
+<mark>Errors</mark>: if present, usually means that your file was NOT correctly uploaded, 
+ an array of human-readable errors (upload_data not provided, 
+filename was invalid and strict_filename was enabled, server is full, invalid upload_data_content_type, stuff like that)
+<br/><br/>
+<mark>url</mark>: url where your file can be downloaded.
+<br/><br/>
+<mark>status</mark>: string, if it does not contain "OK", something bad happened, and you should check for the warnings / errors properties...
+<br/><br/>
+<mark>final_filename</mark>: string, the filename after being sanitized per strict_filename documentation.
+<br/><br/>
+<mark>final_content_type</mark>: string, the final MIME type (useful to find out what upload_data_content_type="autodetect" determined)
+<br/><br/>
+<mark>final_expiration_timestamp</mark>: string (or a number), the number of seconds after 1970-1-1 00:00:00 UTC in which the file will expire, also called 
+UNIX timestamp. special case "-1" means no expiration. to convert it to a human-readable form, you can ask Wolfram Alpha for help, try this link: <a target="_blank" href="http://www.wolframalpha.com/input/?i=1483845314+seconds+after+1970-01-01+00%3A00%3A00">Wolfram Alpha: 1483845314 seconds after 1970-01-01 00:00:00</a>
+
+</div>
+
+</body>
+</html>
